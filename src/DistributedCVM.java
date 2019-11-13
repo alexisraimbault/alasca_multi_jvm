@@ -45,7 +45,6 @@ public class DistributedCVM extends		AbstractDistributedCVM {
 			String[] jvm_uris = {"jvm-1", "jvm-1", "jvm-1", "jvm-1", "jvm-1", "jvm-1", "jvm-1"};
 			
 			this.hd = new HouseDeploy("deploy-uri", jvm_uris);
-			this.addDeployedComponent("deploy-uri", this.hd) ;
 			this.hd.toggleTracing() ;
 			this.hd.toggleLogging() ;
 		}
@@ -77,7 +76,7 @@ public class DistributedCVM extends		AbstractDistributedCVM {
 	{
 		try {
 			DistributedCVM dda = new DistributedCVM(args, 2, 5) ;
-			dda.startStandardLifeCycle(15000) ;
+			dda.startStandardLifeCycle(1000000L) ;
 			Thread.sleep(5000L) ;
 			System.exit(0) ;
 		} catch (Exception e) {

@@ -29,6 +29,7 @@ public class Controller extends AbstractComponent{
 	protected Controller(String controllerURI, String obpURI, String obpURI2, String obpURI3,  String obpURI4,  String obpURI5) throws Exception {
 		super(controllerURI,  1, 1) ;
 		
+		System.out.println("creating controller");
 		
 		this.towardsFridge = new ControllerFridgeObp(obpURI, this) ;
 		this.towardsFridge.localPublishPort() ;
@@ -51,8 +52,12 @@ public class Controller extends AbstractComponent{
 			this.executionLog.setDirectory(System.getProperty("user.home")) ;
 		}
 		
+		System.out.println("created controller");
+		
 		this.tracer.setTitle("controller") ;
 		this.tracer.setRelativePosition(1, 0) ;
+		
+		System.out.println("created controller marker");
 		
 	}
 	public String getFridgeState() throws Exception
