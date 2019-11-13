@@ -1,0 +1,23 @@
+<deployment>
+   <hosts>
+    <host name="localhost"
+          dir="/dizzz11/dht"/>
+  </hosts>
+  <cyclicBarrier   hostname="localhost" port="55253"/>
+  <globalRegistry  hostname="localhost" port="55252"/>
+  <rmiRegistryPort no="55999"/>
+  <jvms2hostnames>
+    <jvm2hostname jvmuri="jvm-1"
+        rmiRegistryCreator="true"
+        hostname="localhost"
+        mainclass="DistributedCVM"/>
+    <jvm2hostname jvmuri="jvm-2"
+        rmiRegistryCreator="false"
+            hostname="localhost"
+        mainclass="DistributedCVM"/>
+    <jvm2hostname jvmuri="jvm-3"
+        rmiRegistryCreator="false"
+            hostname="localhost"
+        mainclass="DistributedCVM"/>
+  </jvms2hostnames>
+</deployment>
