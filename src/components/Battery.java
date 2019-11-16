@@ -7,19 +7,23 @@ import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import interfaces.BatteryOfferedI;
 import interfaces.BatteryRequiredI;
+import interfaces.LaunchableOfferedI;
 import ports.BatteryIbp;
-import ports.OndulatorIbp;
-import ports.OndulatorObp;
+import ports.LaunchableIbp;
 
-@OfferedInterfaces(offered = {BatteryOfferedI.class})
+@OfferedInterfaces(offered = {BatteryOfferedI.class, LaunchableOfferedI.class})
 @RequiredInterfaces(required = {BatteryRequiredI.class})
-public class Battery extends AbstractComponent {
+public class Battery extends AbstractComponent implements LaunchableOfferedI {
 	public double energy;
 	
 	private BatteryIbp ibp;
+	private LaunchableIbp launchIbp;
 	
-	protected Battery(String batteryURI, String ibpURI) throws Exception {
+	protected Battery(String batteryURI, String ibpURI, String launchUri) throws Exception {
 		super(batteryURI,  1, 1) ;
+
+		this.launchIbp = new LaunchableIbp(launchUri, this) ;
+		this.launchIbp.publishPort() ;
 		
 		this.ibp = new BatteryIbp(ibpURI, this) ;
 		this.ibp.publishPort() ;
@@ -72,5 +76,11 @@ public class Battery extends AbstractComponent {
 		// This called at the end to make the component internal
 		// state move to the finalised state.
 		super.finalise();
+	}
+
+	@Override
+	public void launchTasks() throws Exception {
+		// nothing
+		
 	}
 }

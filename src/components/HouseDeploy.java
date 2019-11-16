@@ -6,9 +6,11 @@ import connectors.ControllerEPConnector;
 import connectors.ControllerFridgeConnector;
 import connectors.ControllerHeaterConnector;
 import connectors.ControllerOndulatorConnector;
+import connectors.LaunchConnector;
 import connectors.OndulatorBatteryConnector;
 import connectors.SPOndulatorConnector;
 import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.pre.dcc.connectors.DynamicComponentCreationConnector;
@@ -17,7 +19,10 @@ import fr.sorbonne_u.components.pre.dcc.ports.DynamicComponentCreationOutboundPo
 import fr.sorbonne_u.components.reflection.connectors.ReflectionConnector;
 import fr.sorbonne_u.components.reflection.interfaces.ReflectionI;
 import fr.sorbonne_u.components.reflection.ports.ReflectionOutboundPort;
+import interfaces.LauncherI;
+import ports.LauncherObp;
 
+@RequiredInterfaces(required = {LauncherI.class})
 public class HouseDeploy extends		AbstractComponent
 {
 	protected static final String	CONTROLLER_URI = "controller-uri" ;
@@ -46,10 +51,19 @@ public class HouseDeploy extends		AbstractComponent
 	protected static final String	BATTERY_URI = "battery-uri" ;
 	protected static final String	BATTERY_IBP_URI = "battery-iport" ;
 	
+	protected static final String	CONTROLLER_LAUNCH_URI = "controller-launch" ;
+	protected static final String	SP_LAUNCH_URI = "sp-launch" ;
+	protected static final String	ONDULATOR_LAUNCH_URI = "ondulator-launch" ;
+	protected static final String	HEATER_LAUNCH_URI = "heater-launch" ;
+	protected static final String	FRIDGE_LAUNCH_URI = "fridge-launch" ;
+	protected static final String	EP_LAUNCH_URI = "ep-launch" ;
+	protected static final String	BATTERY_LAUNCH_URI = "battery-launch" ;
+	
 	protected String[] jvm_uris;
 	protected String[] reflection_ibp_uris;
 	
 	protected DynamicComponentCreationOutboundPort tmpCObp;
+	protected LauncherObp launchObp;
 	
 	protected ReflectionOutboundPort rop;
 	
@@ -60,6 +74,14 @@ public class HouseDeploy extends		AbstractComponent
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 		this.jvm_uris = jvm_uris;
 		reflection_ibp_uris = new String[7];
+		
+		try {
+			this.launchObp = new LauncherObp(this);
+			this.launchObp.localPublishPort();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		this.tracer.setTitle("Deployer") ;
 		this.tracer.setRelativePosition(1, 2) ;
@@ -80,7 +102,8 @@ public class HouseDeploy extends		AbstractComponent
 						CONTROLLER_OBP2_URI, 
 						CONTROLLER_OBP3_URI,
 						CONTROLLER_OBP4_URI,
-						CONTROLLER_OBP5_URI}) ;
+						CONTROLLER_OBP5_URI,
+						CONTROLLER_LAUNCH_URI}) ;
 		
 		i++;
 		tmpCObp.doDisconnection();
@@ -90,7 +113,8 @@ public class HouseDeploy extends		AbstractComponent
 				Fridge.class.getCanonicalName(),
 				new Object[]{FRIDGE_URI,
 						FRIDGE_IBP_URI,
-						FRIDGE_EP_URI}) ;
+						FRIDGE_EP_URI,
+						FRIDGE_LAUNCH_URI}) ;
 		
 		i++;
 		tmpCObp.doDisconnection();
@@ -100,7 +124,8 @@ public class HouseDeploy extends		AbstractComponent
 				Heater.class.getCanonicalName(),
 				new Object[]{HEATER_URI,
 						HEATER_IBP_URI,
-						HEATER_EP_URI}) ;
+						HEATER_EP_URI,
+						HEATER_LAUNCH_URI}) ;
 		
 		i++;
 		tmpCObp.doDisconnection();
@@ -109,7 +134,9 @@ public class HouseDeploy extends		AbstractComponent
 		reflection_ibp_uris[3] = tmpCObp.createComponent(
 				SolarPanel.class.getCanonicalName(),
 				new Object[]{SP_URI,
-						SP_OBP_URI}) ;
+						SP_OBP_URI,
+						SP_LAUNCH_URI
+						}) ;
 		
 		i++;
 		tmpCObp.doDisconnection();
@@ -119,7 +146,8 @@ public class HouseDeploy extends		AbstractComponent
 				Ondulator.class.getCanonicalName(),
 				new Object[]{ONDULATOR_URI,
 						ONDULATOR_OBP_URI,
-						ONDULATOR_IBP_URI}) ;
+						ONDULATOR_IBP_URI,
+						ONDULATOR_LAUNCH_URI}) ;
 		
 		i++;
 		tmpCObp.doDisconnection();
@@ -128,7 +156,8 @@ public class HouseDeploy extends		AbstractComponent
 		reflection_ibp_uris[5] = tmpCObp.createComponent(
 						Battery.class.getCanonicalName(),
 						new Object[]{BATTERY_URI,
-								BATTERY_IBP_URI}) ;
+								BATTERY_IBP_URI,
+								BATTERY_LAUNCH_URI}) ;
 		
 		i++;
 		tmpCObp.doDisconnection();
@@ -137,7 +166,8 @@ public class HouseDeploy extends		AbstractComponent
 		reflection_ibp_uris[6] = tmpCObp.createComponent(
 				ElecPanel.class.getCanonicalName(),
 				new Object[]{EP_URI,
-						EP_IBP_URI}) ;
+						EP_IBP_URI,
+						EP_LAUNCH_URI}) ;
 		
 		tmpCObp.doDisconnection();
 		
@@ -155,6 +185,7 @@ public class HouseDeploy extends		AbstractComponent
 		rop.doConnection(reflection_ibp_uris[0], ReflectionConnector.class.getCanonicalName());//Controller
 		
 		rop.toggleTracing();
+		rop.toggleLogging();
 		
 		this.logMessage("controller tracing done...");
 		
@@ -183,6 +214,7 @@ public class HouseDeploy extends		AbstractComponent
 		rop.doConnection(reflection_ibp_uris[3], ReflectionConnector.class.getCanonicalName());//SolarPanel
 		
 		rop.toggleTracing();
+		rop.toggleLogging();
 		
 		rop.doPortConnection(SP_OBP_URI, ONDULATOR_IBP_URI, SPOndulatorConnector.class.getCanonicalName());
 		
@@ -191,6 +223,7 @@ public class HouseDeploy extends		AbstractComponent
 		rop.doConnection(reflection_ibp_uris[4], ReflectionConnector.class.getCanonicalName());//Ondulator
 		
 		rop.toggleTracing();
+		rop.toggleLogging();
 		
 		rop.doPortConnection(ONDULATOR_OBP_URI, BATTERY_IBP_URI, OndulatorBatteryConnector.class.getCanonicalName());
 		
@@ -199,6 +232,7 @@ public class HouseDeploy extends		AbstractComponent
 		rop.doConnection(reflection_ibp_uris[2], ReflectionConnector.class.getCanonicalName());//Heater
 		
 		rop.toggleTracing();
+		rop.toggleLogging();
 		
 		rop.doPortConnection(HEATER_EP_URI, EP_IBP_URI, ComponentEPConnector.class.getCanonicalName());
 
@@ -207,6 +241,7 @@ public class HouseDeploy extends		AbstractComponent
 		rop.doConnection(reflection_ibp_uris[1], ReflectionConnector.class.getCanonicalName());//Fridge
 		
 		rop.toggleTracing();
+		rop.toggleLogging();
 		
 		rop.doPortConnection(FRIDGE_EP_URI, EP_IBP_URI, ComponentEPConnector.class.getCanonicalName());
 
@@ -215,16 +250,47 @@ public class HouseDeploy extends		AbstractComponent
 		rop.doConnection(reflection_ibp_uris[5], ReflectionConnector.class.getCanonicalName());//Fridge
 		
 		rop.toggleTracing();
+		rop.toggleLogging();
 
 		this.doPortDisconnection(rop.getPortURI()) ;
 		
 		rop.doConnection(reflection_ibp_uris[6], ReflectionConnector.class.getCanonicalName());//Fridge
 		
 		rop.toggleTracing();
+		rop.toggleLogging();
 
 		this.doPortDisconnection(rop.getPortURI()) ;
 		
 		this.logMessage("linked...");
+		
+		this.logMessage("launching tasks...");
+		this.doPortConnection(this.launchObp.getPortURI(), CONTROLLER_LAUNCH_URI, LaunchConnector.class.getCanonicalName());
+		this.launchObp.launchTasks();
+		this.doPortDisconnection(this.launchObp.getPortURI());
+		
+		this.doPortConnection(this.launchObp.getPortURI(), BATTERY_LAUNCH_URI, LaunchConnector.class.getCanonicalName());
+		this.launchObp.launchTasks();
+		this.doPortDisconnection(this.launchObp.getPortURI());
+		
+		this.doPortConnection(this.launchObp.getPortURI(), EP_LAUNCH_URI, LaunchConnector.class.getCanonicalName());
+		this.launchObp.launchTasks();
+		this.doPortDisconnection(this.launchObp.getPortURI());
+		
+		this.doPortConnection(this.launchObp.getPortURI(), FRIDGE_LAUNCH_URI, LaunchConnector.class.getCanonicalName());
+		this.launchObp.launchTasks();
+		this.doPortDisconnection(this.launchObp.getPortURI());
+		
+		this.doPortConnection(this.launchObp.getPortURI(), HEATER_LAUNCH_URI, LaunchConnector.class.getCanonicalName());
+		this.launchObp.launchTasks();
+		this.doPortDisconnection(this.launchObp.getPortURI());
+		
+		this.doPortConnection(this.launchObp.getPortURI(), ONDULATOR_LAUNCH_URI, LaunchConnector.class.getCanonicalName());
+		this.launchObp.launchTasks();
+		this.doPortDisconnection(this.launchObp.getPortURI());
+		
+		this.doPortConnection(this.launchObp.getPortURI(), SP_LAUNCH_URI, LaunchConnector.class.getCanonicalName());
+		this.launchObp.launchTasks();
+		this.doPortDisconnection(this.launchObp.getPortURI());
 	}
 	
 	@Override

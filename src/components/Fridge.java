@@ -10,16 +10,19 @@ import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.exceptions.PostconditionException;
 import interfaces.FridgeI;
+import interfaces.LaunchableOfferedI;
 import interfaces.ComponentEPI;
 import ports.ComponentEPObp;
 import ports.FridgeIbp;
+import ports.LaunchableIbp;
 
-@OfferedInterfaces(offered = {FridgeI.class})
+@OfferedInterfaces(offered = {FridgeI.class, LaunchableOfferedI.class})
 @RequiredInterfaces(required = {ComponentEPI.class})
-public class Fridge extends AbstractComponent{
+public class Fridge extends AbstractComponent implements LaunchableOfferedI {
 	private double temperature;
 	private String state;
 	private FridgeIbp ibp;
+	private LaunchableIbp launchIbp;
 
 	/*
 	 * plaque temperature
@@ -35,8 +38,11 @@ public class Fridge extends AbstractComponent{
 	private ComponentEPObp epObp;
 	
 	
-	protected Fridge(String fridgeURI, String ibpURI, String epURI) throws Exception {
+	protected Fridge(String fridgeURI, String ibpURI, String epURI, String launchUri) throws Exception {
 		super(fridgeURI,  1, 1) ;
+
+		this.launchIbp = new LaunchableIbp(launchUri, this) ;
+		this.launchIbp.publishPort() ;
 		
 		this.temperature = 15;
 		this.state = "off";
@@ -186,6 +192,35 @@ public class Fridge extends AbstractComponent{
 		// This called at the end to make the component internal
 		// state move to the finalised state.  15 + on 14
 		super.finalise();
+	}
+
+	@Override
+	public void launchTasks() throws Exception {
+		this.scheduleTask(
+				new AbstractComponent.AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							((Fridge)this.getTaskOwner()).EPRegister();
+						} catch (Exception e) {
+							throw new RuntimeException(e) ;
+						}
+					}
+				},
+				500, TimeUnit.MILLISECONDS);
+			
+			this.scheduleTaskWithFixedDelay(		
+					new AbstractComponent.AbstractTask() {
+						@Override
+						public void run() {
+							try {
+								((Fridge)this.getTaskOwner()).updateTemperature();
+							} catch (Exception e) {
+								throw new RuntimeException(e) ;
+							}
+						}
+					}, 4000, 1000 // délai entre la fin d'une exécution et la suivante
+					,TimeUnit.MILLISECONDS) ;
 	}
 }
 //-----------------------------------------------------------------------------

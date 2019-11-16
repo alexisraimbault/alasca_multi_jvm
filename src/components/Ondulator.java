@@ -1,28 +1,32 @@
 package components;
 
-import java.util.concurrent.TimeUnit;
-
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
+import interfaces.LaunchableOfferedI;
 import interfaces.SPControllerOfferedI;
 import interfaces.SPControllerRequiredI;
+import ports.LaunchableIbp;
 import ports.OndulatorIbp;
 import ports.OndulatorObp;
 
-@OfferedInterfaces(offered = {SPControllerOfferedI.class})
+@OfferedInterfaces(offered = {SPControllerOfferedI.class, LaunchableOfferedI.class})
 @RequiredInterfaces(required = {SPControllerRequiredI.class})
-public class Ondulator extends AbstractComponent {
+public class Ondulator extends AbstractComponent implements LaunchableOfferedI {
 	public String policy;//storage
 	
 	private OndulatorObp towardsBattery;
 	private OndulatorIbp ibp;
+	private LaunchableIbp launchIbp;
 	
 	
-	protected Ondulator(String ondulatorURI, String obpURI, String ibpURI) throws Exception {
+	protected Ondulator(String ondulatorURI, String obpURI, String ibpURI, String launchUri) throws Exception {
 		super(ondulatorURI,  1, 1) ;
+
+		this.launchIbp = new LaunchableIbp(launchUri, this) ;
+		this.launchIbp.publishPort() ;
 		
 		this.towardsBattery = new OndulatorObp(obpURI, this) ;
 		this.towardsBattery.localPublishPort() ;
@@ -82,5 +86,11 @@ public class Ondulator extends AbstractComponent {
 		// This called at the end to make the component internal
 		// state move to the finalised state.
 		super.finalise();
+	}
+
+	@Override
+	public void launchTasks() throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 }

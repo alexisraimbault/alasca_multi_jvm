@@ -1,0 +1,28 @@
+1573870158682|Registry up and running!
+1573870168353|GlobalRegistry processing put deploy-uri rmi=localhost
+1573870168991|GlobalRegistry processing put fr.sorbonne_u.components.reflection.interfaces.ReflectionI-d2a6e016-667f-443b-8983-b2d3a7ee96cc rmi=localhost
+1573870169001|All connected!
+1573870169032|GlobalRegistry processing put fr.sorbonne_u.components.reflection.interfaces.ReflectionI-25af87c4-82b6-4d21-a787-da2ba1f12586 rmi=localhost
+1573870169247|GlobalRegistry processing put jvm-3-dcc rmi=localhost
+1573870169272|GlobalRegistry processing put jvm-2-dcc rmi=localhost
+1573870170146|GlobalRegistry processing put fr.sorbonne_u.components.reflection.interfaces.ReflectionI-502e6677-eaf8-4e30-861e-537a0f3c8ffa rmi=localhost
+1573870170219|GlobalRegistry processing put jvm-1-dcc rmi=localhost
+1573870170680|GlobalRegistry processing put controller-uri rmi=localhost
+1573870170795|GlobalRegistry processing put controller-launch rmi=localhost
+1573870170875|GlobalRegistry processing put fridge-uri rmi=localhost
+1573870170980|GlobalRegistry processing put iport rmi=localhost
+1573870171072|GlobalRegistry processing put fridge-ep-uri rmi=localhost
+1573870171163|GlobalRegistry processing put heater-uri rmi=localhost
+1573870171267|GlobalRegistry processing put heater-iport rmi=localhost
+1573870171356|GlobalRegistry processing put heater-ep-uri rmi=localhost
+1573870171449|GlobalRegistry processing put sp-uri rmi=localhost
+1573870171547|GlobalRegistry processing put ondulator-uri rmi=localhost
+1573870171645|GlobalRegistry processing put ondulator-oport rmi=localhost
+1573870171732|GlobalRegistry processing put battery-uri rmi=localhost
+1573870171832|GlobalRegistry processing put battery-iport rmi=localhost
+1573870171920|GlobalRegistry processing put ep-uri rmi=localhost
+1573870172020|GlobalRegistry processing put ep-iport rmi=localhost
+1573870183310|GlobalRegistry processing null
+1573870184430|GlobalRegistry processing null
+1573870185112|GlobalRegistry processing null
+1573870185113|Global registry shuts down!

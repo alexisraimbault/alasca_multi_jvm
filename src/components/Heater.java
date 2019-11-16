@@ -9,21 +9,26 @@ import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import interfaces.ComponentEPI;
 import interfaces.HeaterI;
+import interfaces.LaunchableOfferedI;
 import ports.ComponentEPObp;
 import ports.HeaterIbp;
+import ports.LaunchableIbp;
 
-@OfferedInterfaces(offered = {HeaterI.class})
+@OfferedInterfaces(offered = {HeaterI.class, LaunchableOfferedI.class})
 @RequiredInterfaces(required = {ComponentEPI.class})
-public class Heater extends AbstractComponent {
+public class Heater extends AbstractComponent implements LaunchableOfferedI {
 	
 	private int power;
 	private String state;
 	private HeaterIbp ibp;
 	private ComponentEPObp epObp;
+	private LaunchableIbp launchIbp;
 	
-	protected Heater(String heaterURI, String ibpURI, String epURI) throws Exception {
+	protected Heater(String heaterURI, String ibpURI, String epURI, String launchUri) throws Exception {
 		super(heaterURI,  1, 1) ;
-		
+
+		this.launchIbp = new LaunchableIbp(launchUri, this) ;
+		this.launchIbp.publishPort() ;
 		
 		this.ibp = new HeaterIbp(ibpURI, this) ;
 		this.ibp.publishPort() ;
@@ -123,6 +128,22 @@ public class Heater extends AbstractComponent {
 		// This called at the end to make the component internal
 		// state move to the finalised state.  15 + on 14
 		super.finalise();
+	}
+
+	@Override
+	public void launchTasks() throws Exception {
+		this.scheduleTask(
+				new AbstractComponent.AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							((Heater)this.getTaskOwner()).EPRegister();
+						} catch (Exception e) {
+							throw new RuntimeException(e) ;
+						}
+					}
+				},
+				500, TimeUnit.MILLISECONDS);
 	}
 	
 }

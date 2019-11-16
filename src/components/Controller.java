@@ -3,6 +3,7 @@ package components;
 import java.util.concurrent.TimeUnit;
 
 import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
@@ -10,26 +11,31 @@ import interfaces.ControllerFridgeI;
 import interfaces.ControllerHeaterI;
 import interfaces.ControllerBatteryI;
 import interfaces.ControllerOndulatorI;
+import interfaces.LaunchableOfferedI;
 import interfaces.ControllerEPI;
 import ports.ControllerBatteryObp;
 import ports.ControllerEPObp;
 import ports.ControllerFridgeObp;
 import ports.ControllerHeaterObp;
 import ports.ControllerOndulatorObp;
+import ports.LaunchableIbp;
 
+@OfferedInterfaces(offered = {LaunchableOfferedI.class})
 @RequiredInterfaces(required = {ControllerFridgeI.class, ControllerHeaterI.class, ControllerBatteryI.class, ControllerOndulatorI.class, ControllerEPI.class})
-public class Controller extends AbstractComponent{
+public class Controller extends AbstractComponent implements LaunchableOfferedI{
 	
 	private ControllerFridgeObp towardsFridge;
 	private ControllerHeaterObp towardsHeater;
 	private ControllerBatteryObp towardsBattery;
 	private ControllerOndulatorObp towardsOndulator;
 	private ControllerEPObp towardsEP;
+	private LaunchableIbp launchIbp;
 
-	protected Controller(String controllerURI, String obpURI, String obpURI2, String obpURI3,  String obpURI4,  String obpURI5) throws Exception {
+	protected Controller(String controllerURI, String obpURI, String obpURI2, String obpURI3,  String obpURI4,  String obpURI5, String launchUri) throws Exception {
 		super(controllerURI,  1, 1) ;
 		
-		System.out.println("creating controller");
+		this.launchIbp = new LaunchableIbp(launchUri, this) ;
+		this.launchIbp.publishPort() ;
 		
 		this.towardsFridge = new ControllerFridgeObp(obpURI, this) ;
 		this.towardsFridge.localPublishPort() ;
@@ -52,13 +58,9 @@ public class Controller extends AbstractComponent{
 			this.executionLog.setDirectory(System.getProperty("user.home")) ;
 		}
 		
-		System.out.println("created controller");
-		
 		this.tracer.setTitle("controller") ;
 		this.tracer.setRelativePosition(1, 0) ;
-		
-		System.out.println("created controller marker");
-		
+
 	}
 	public String getFridgeState() throws Exception
 	{
@@ -263,6 +265,100 @@ public class Controller extends AbstractComponent{
 		// This called at the end to make the component internal
 		// state move to the finalised state.
 		super.finalise();
+	}
+	@Override
+	public void launchTasks() throws Exception {
+		// Schedule the first service method invocation in one second.
+				this.scheduleTask(
+					new AbstractComponent.AbstractTask() {
+						@Override
+						public void run() {
+							try {
+								((Controller)this.getTaskOwner()).switchFridgeOn();
+							} catch (Exception e) {
+								throw new RuntimeException(e) ;
+							}
+						}
+					},
+					1000, TimeUnit.MILLISECONDS);
+				
+				this.scheduleTask(
+						new AbstractComponent.AbstractTask() {
+							@Override
+							public void run() {
+								try {
+									((Controller)this.getTaskOwner()).switchHeaterOn();
+								} catch (Exception e) {
+									throw new RuntimeException(e) ;
+								}
+							}
+						},
+						1000, TimeUnit.MILLISECONDS);
+				
+				this.scheduleTask(
+						new AbstractComponent.AbstractTask() {
+							@Override
+							public void run() {
+								try {
+									((Controller)this.getTaskOwner()).setOndulatorPolicy("default");
+								} catch (Exception e) {
+									throw new RuntimeException(e) ;
+								}
+							}
+						},
+						1000, TimeUnit.MILLISECONDS);
+				
+				this.scheduleTask(
+						new AbstractComponent.AbstractTask() {
+							@Override
+							public void run() {
+								try {
+									((Controller)this.getTaskOwner()).getFridgeTemperature();
+								} catch (Exception e) {
+									throw new RuntimeException(e) ;
+								}
+							}
+						},
+						2000, TimeUnit.MILLISECONDS);
+				
+				this.scheduleTask(
+						new AbstractComponent.AbstractTask() {
+							@Override
+							public void run() {
+								try {
+									((Controller)this.getTaskOwner()).getBatteryEnergy();
+								} catch (Exception e) {
+									throw new RuntimeException(e) ;
+								}
+							}
+						},
+						3000, TimeUnit.MILLISECONDS);
+				
+				this.scheduleTaskWithFixedDelay(		
+						new AbstractComponent.AbstractTask() {
+							@Override
+							public void run() {
+								try {
+									((Controller)this.getTaskOwner()).controllFridge();
+								} catch (Exception e) {
+									throw new RuntimeException(e) ;
+								}
+							}
+						}, 4000, 1000 // délai entre la fin d'une exécution et la suivante, à modifier 
+						,TimeUnit.MILLISECONDS) ;
+				
+				this.scheduleTaskWithFixedDelay(		
+						new AbstractComponent.AbstractTask() {
+							@Override
+							public void run() {
+								try {
+									((Controller)this.getTaskOwner()).getEPConsommation();
+								} catch (Exception e) {
+									throw new RuntimeException(e) ;
+								}
+							}
+						}, 1000, 4000 // délai entre la fin d'une exécution et la suivante, à modifier 
+						,TimeUnit.MILLISECONDS) ;
 	}
 }
 //-----------------------------------------------------------------------------

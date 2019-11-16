@@ -1,21 +1,26 @@
 package components;
 
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import interfaces.ElecPanelOfferedI;
+import interfaces.LaunchableOfferedI;
 import ports.ElecPanelIbp;
+import ports.LaunchableIbp;
 
-@OfferedInterfaces(offered = {ElecPanelOfferedI.class})
-public class ElecPanel  extends AbstractComponent{
+@OfferedInterfaces(offered = {ElecPanelOfferedI.class, LaunchableOfferedI.class})
+public class ElecPanel  extends AbstractComponent implements LaunchableOfferedI {
 	public ElecPanelIbp ibp;
 	public HashMap<String, Double> components;
+	private LaunchableIbp launchIbp;
 	
-	protected ElecPanel(String epURI, String ibpURI) throws Exception {
+	protected ElecPanel(String epURI, String ibpURI, String launchUri) throws Exception {
 		super(epURI,  1, 1) ;
+
+		this.launchIbp = new LaunchableIbp(launchUri, this) ;
+		this.launchIbp.publishPort() ;
 		
 		this.ibp = new ElecPanelIbp(ibpURI, this) ;
 		this.ibp.publishPort() ;
@@ -80,6 +85,13 @@ public class ElecPanel  extends AbstractComponent{
 		// This called at the end to make the component internal
 		// state move to the finalised state.  15 + on 14
 		super.finalise();
+	}
+
+
+	@Override
+	public void launchTasks() throws Exception {
+		// nothing
+		
 	}
 
 }

@@ -70,6 +70,8 @@ public class DistributedCVM extends		AbstractDistributedCVM {
 						}
 					}) ;
 		}
+		
+		
 }
 
 	public static void	main(String[] args)

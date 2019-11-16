@@ -3,20 +3,28 @@ package components;
 import java.util.concurrent.TimeUnit;
 
 import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
+import interfaces.LaunchableOfferedI;
 import interfaces.SolarPanelI;
+import ports.LaunchableIbp;
 import ports.SPObp;
 
+@OfferedInterfaces(offered = {LaunchableOfferedI.class})
 @RequiredInterfaces(required = {SolarPanelI.class})
-public class SolarPanel extends AbstractComponent {
+public class SolarPanel extends AbstractComponent implements LaunchableOfferedI {
 	
 	private SPObp towardsOndulator;
 	private int energy;
+	private LaunchableIbp launchIbp;
 	
-	protected SolarPanel(String solarPanelURI, String obpURI) throws Exception {
+	protected SolarPanel(String solarPanelURI, String obpURI, String launchUri) throws Exception {
 		super(solarPanelURI,  1, 1) ;
+
+		this.launchIbp = new LaunchableIbp(launchUri, this) ;
+		this.launchIbp.publishPort() ;
 		
 		this.energy = 10;
 		
@@ -80,6 +88,23 @@ public class SolarPanel extends AbstractComponent {
 		// This called at the end to make the component internal
 		// state move to the finalised state.
 		super.finalise();
+	}
+
+
+	@Override
+	public void launchTasks() throws Exception {
+		this.scheduleTask(
+				new AbstractComponent.AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							((SolarPanel)this.getTaskOwner()).sendEnergy();
+						} catch (Exception e) {
+							throw new RuntimeException(e) ;
+						}
+					}
+				},
+				2000, TimeUnit.MILLISECONDS);
 	}
 	
 }
